@@ -425,11 +425,11 @@
             audioPlayer.addEventListener("play", updatePlaylistUI);
             audioPlayer.addEventListener("pause", updatePlaylistUI);
             audioPlayer.addEventListener("ended", () => {
-                if (
-                    !singleTrackMode &&
-                    currentTrackIndex < musicFiles.length - 1
-                ) {
-                    playTrack(currentTrackIndex + 1);
+                if (!singleTrackMode) {
+                    // Cycle through all songs on main page
+                    const nextIndex =
+                        (currentTrackIndex + 1) % musicFiles.length;
+                    playTrack(nextIndex);
                 } else {
                     updatePlaylistUI();
                 }
