@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Music Player</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Oxygen, Ubuntu, sans-serif;
+                background: linear-gradient(
+                    135deg,
+                    #1a1a2e 0%,
+                    #16213e 50%,
+                    #0f3460 100%
+                );
+                min-height: 100vh;
+                color: #fff;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                text-align: center;
+                margin-bottom: 30px;
+                font-size: 2.5rem;
+                background: linear-gradient(90deg, #e94560, #f39c12);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .player-container {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 30px;
+            }
+
+            .now-playing {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .now-playing-label {
+                font-size: 0.9rem;
+                color: #aaa;
+                margin-bottom: 5px;
+            }
+
+            .now-playing-title {
+                font-size: 1.3rem;
+                font-weight: 600;
+                word-break: break-word;
+            }
+
+            #audio-player {
+                width: 100%;
+                margin-top: 20px;
+                border-radius: 10px;
+            }
+
+            .back-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                color: #e94560;
+                text-decoration: none;
+                margin-bottom: 20px;
+                font-weight: 500;
+                transition: opacity 0.3s;
+            }
+
+            .back-link:hover {
+                opacity: 0.8;
+            }
+
+            .back-link svg {
+                width: 20px;
+                height: 20px;
+                fill: currentColor;
+            }
+
+            .playlist {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 15px;
+                overflow: hidden;
+            }
+
+            .playlist-header {
+                padding: 15px 20px;
+                background: rgba(255, 255, 255, 0.1);
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+
+            .playlist-items {
+                list-style: none;
+            }
+
+            .playlist-item {
+                padding: 15px 20px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                transition: background 0.3s ease;
+            }
+
+            .playlist-item:last-child {
+                border-bottom: none;
+            }
+
+            .playlist-item:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .playlist-item.active {
+                background: rgba(233, 69, 96, 0.3);
+            }
+
+            .playlist-item.playing {
+                background: rgba(233, 69, 96, 0.5);
+            }
+
+            .play-btn {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #e94560, #f39c12);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                cursor: pointer;
+                border: none;
+                transition:
+                    transform 0.2s,
+                    opacity 0.2s;
+            }
+
+            .play-btn:hover {
+                transform: scale(1.1);
+                opacity: 0.9;
+            }
+
+            .play-btn svg {
+                width: 16px;
+                height: 16px;
+                fill: white;
+            }
+
+            .track-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .track-name {
+                font-weight: 500;
+                word-break: break-word;
+            }
+
+            .track-number {
+                font-size: 0.85rem;
+                color: #aaa;
+            }
+
+            .track-actions {
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+
+            .action-btn {
+                padding: 8px 12px;
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .action-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
+
+            .action-btn svg {
+                width: 14px;
+                height: 14px;
+                fill: currentColor;
+            }
+
+            .action-btn.copied {
+                background: rgba(46, 204, 113, 0.3);
+                border-color: rgba(46, 204, 113, 0.5);
+            }
+
+            .no-music {
+                text-align: center;
+                padding: 40px;
+                color: #aaa;
+            }
+
+            .single-track-mode .playlist {
+                display: none;
+            }
+
+            @media (max-width: 600px) {
+                h1 {
+                    font-size: 1.8rem;
+                }
+
+                .player-container {
+                    padding: 20px;
+                }
+
+                .track-actions {
+                    flex-direction: column;
+                    gap: 5px;
+                }
+
+                .action-btn {
+                    padding: 6px 10px;
+                    font-size: 0.75rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a href="./" class="back-link" id="back-link" style="display: none">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                    />
+                </svg>
+                Back to Playlist
+            </a>
+
+            <h1>Music Player</h1>
+
+            <div class="player-container">
+                <div class="now-playing">
+                    <div class="now-playing-label">Now Playing</div>
+                    <div class="now-playing-title" id="current-track">
+                        Select a track to play
+                    </div>
+                </div>
+                <audio id="audio-player" controls>
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+
+            <div class="playlist">
+                <div class="playlist-header">Playlist</div>
+                <ul class="playlist-items" id="playlist">
+                    <!-- Tracks will be populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            // List of music files in this repository
+            const musicFiles = ["თბილისის მზიანი სია.mp3"];
+
+            const audioPlayer = document.getElementById("audio-player");
+            const currentTrackDisplay =
+                document.getElementById("current-track");
+            const playlistContainer = document.getElementById("playlist");
+            const backLink = document.getElementById("back-link");
+
+            let currentTrackIndex = -1;
+            let singleTrackMode = false;
+
+            function getTrackDisplayName(filename) {
+                return filename.replace(/\.[^/.]+$/, "");
+            }
+
+            function getBaseUrl() {
+                return (
+                    window.location.origin +
+                    window.location.pathname.replace(/\/[^\/]*$/, "/")
+                );
+            }
+
+            function getDirectFileUrl(filename) {
+                return getBaseUrl() + encodeURIComponent(filename);
+            }
+
+            function getPlaybackUrl(index) {
+                return getBaseUrl() + "?play=" + index;
+            }
+
+            function copyToClipboard(text, buttonElement) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = buttonElement.innerHTML;
+                    buttonElement.classList.add("copied");
+                    buttonElement.innerHTML =
+                        '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Copied!';
+                    setTimeout(() => {
+                        buttonElement.classList.remove("copied");
+                        buttonElement.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+
+            function renderPlaylist() {
+                if (musicFiles.length === 0) {
+                    playlistContainer.innerHTML =
+                        '<li class="no-music">No music files found</li>';
+                    return;
+                }
+
+                playlistContainer.innerHTML = musicFiles
+                    .map(
+                        (file, index) => `
+                <li class="playlist-item" data-index="${index}">
+                    <button class="play-btn" onclick="playTrack(${index})" title="Play">
+                        <svg viewBox="0 0 24 24" id="icon-${index}">
+                            <polygon points="5,3 19,12 5,21" />
+                        </svg>
+                    </button>
+                    <div class="track-info">
+                        <div class="track-name">${getTrackDisplayName(file)}</div>
+                        <div class="track-number">Track ${index + 1}</div>
+                    </div>
+                    <div class="track-actions">
+                        <button class="action-btn" onclick="copyToClipboard('${getPlaybackUrl(index)}', this)" title="Copy playback URL">
+                            <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+                            Share
+                        </button>
+                        <a class="action-btn" href="${getDirectFileUrl(file)}" target="_blank" title="Direct link to MP3 file">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Direct
+                        </a>
+                    </div>
+                </li>
+            `,
+                    )
+                    .join("");
+            }
+
+            function updatePlaylistUI() {
+                const items = document.querySelectorAll(".playlist-item");
+                items.forEach((item, index) => {
+                    item.classList.remove("active", "playing");
+                    const icon = document.getElementById(`icon-${index}`);
+                    if (icon) {
+                        icon.innerHTML = '<polygon points="5,3 19,12 5,21" />';
+                    }
+
+                    if (index === currentTrackIndex) {
+                        item.classList.add("active");
+                        if (!audioPlayer.paused && icon) {
+                            item.classList.add("playing");
+                            icon.innerHTML =
+                                '<rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" />';
+                        }
+                    }
+                });
+            }
+
+            function playTrack(index) {
+                if (index < 0 || index >= musicFiles.length) return;
+
+                const file = musicFiles[index];
+                currentTrackIndex = index;
+
+                const encodedFile = encodeURIComponent(file);
+                audioPlayer.src = encodedFile;
+                audioPlayer.play();
+
+                currentTrackDisplay.textContent = getTrackDisplayName(file);
+                updatePlaylistUI();
+            }
+
+            function checkUrlParams() {
+                const params = new URLSearchParams(window.location.search);
+                const playIndex = params.get("play");
+
+                if (playIndex !== null) {
+                    const index = parseInt(playIndex, 10);
+                    if (
+                        !isNaN(index) &&
+                        index >= 0 &&
+                        index < musicFiles.length
+                    ) {
+                        singleTrackMode = true;
+                        document.body.classList.add("single-track-mode");
+                        backLink.style.display = "inline-flex";
+                        playTrack(index);
+                    }
+                }
+            }
+
+            // Event listeners
+            audioPlayer.addEventListener("play", updatePlaylistUI);
+            audioPlayer.addEventListener("pause", updatePlaylistUI);
+            audioPlayer.addEventListener("ended", () => {
+                if (
+                    !singleTrackMode &&
+                    currentTrackIndex < musicFiles.length - 1
+                ) {
+                    playTrack(currentTrackIndex + 1);
+                } else {
+                    updatePlaylistUI();
+                }
+            });
+
+            // Initialize
+            renderPlaylist();
+            checkUrlParams();
+        </script>
+    </body>
+</html>
